@@ -24,8 +24,10 @@ const (
 	logfile = "qlc.log"
 )
 
-var lumlog lumberjack.Logger
-var logger *zap.Logger
+var (
+	lumlog lumberjack.Logger
+	logger *zap.Logger
+)
 
 //NewLogger create logger by name
 func NewLogger(name string) *zap.SugaredLogger {
