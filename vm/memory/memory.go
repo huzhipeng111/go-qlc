@@ -43,6 +43,16 @@ type VMemory struct {
 	MemPoints         map[uint64]*TypeLength
 }
 
+func NewVMemory(size uint64) VMemory {
+	return VMemory{
+		Memory:            make([]byte, size),
+		AllocatedMemIndex: 0,
+		PointedMemIndex:   0,
+		ParamIndex:        0,
+		MemPoints:         make(map[uint64]*TypeLength),
+	}
+}
+
 //Malloc memory for base types by size, return the address in memory
 func (vm *VMemory) Malloc(size int) (int, error) {
 	if vm.Memory == nil || len(vm.Memory) == 0 {
@@ -60,6 +70,32 @@ func (vm *VMemory) Malloc(size int) (int, error) {
 	vm.AllocatedMemIndex += size
 
 	return offset, nil
+}
+
+// MemSet
+func (vm *VMemory) MemSet(dest int, ch int, count int) (int, error) {
+	if vm.Memory == nil || len(vm.Memory) == 0 {
+		return 0, notInitializedError
+	}
+
+	if dest > vm.Length() {
+		return 0, outOfMemoryError
+	}
+
+	end := dest + count
+	if end > vm.Length() {
+		end = vm.Length()
+	}
+
+	for i := dest; i <= end; i++ {
+		vm.Memory[i] = byte(ch)
+	}
+
+	return count, nil
+}
+
+func (vm *VMemory) Length() int {
+	return len(vm.Memory)
 }
 
 //MallocPointer malloc memory for pointer types, return the address in memory
@@ -86,6 +122,12 @@ func (vm *VMemory) copyMemAndGetIdx(b []byte, pType PointerType) (int, error) {
 	copy(vm.Memory[idx:idx+len(b)], b)
 
 	return idx, nil
+}
+
+// Grow up memory size
+func (vm *VMemory) Grow(size uint64) {
+	tmp := []byte(vm.Memory)
+	vm.Memory = append(tmp, make([]byte, size)...)
 }
 
 //GetPointerMemSize return pointed memory size
