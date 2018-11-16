@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"hash"
+	"strconv"
 
 	"github.com/tinylib/msgp/msgp"
 	"golang.org/x/crypto/blake2b"
@@ -52,6 +53,16 @@ func (w Work) String() string {
 	var bytes [WorkSize]byte
 	binary.BigEndian.PutUint64(bytes[:], uint64(w))
 	return hex.EncodeToString(bytes[:])
+}
+
+//ParseWorkHexString create Work from hex string
+func (w *Work) ParseWorkHexString(hexstring string) error {
+	work, err := strconv.ParseInt(hexstring, 16, 64)
+	if err != nil {
+		return err
+	}
+	*w = Work(work)
+	return nil
 }
 
 //ExtensionType implements Extension.ExtensionType interface

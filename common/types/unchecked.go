@@ -7,6 +7,10 @@
 
 package types
 
+const (
+	PendingKeySize = AddressSize + HashSize
+)
+
 //go:generate msgp
 type PendingKey struct {
 	Address Address `msg:"account,extension" json:"account"`
@@ -24,7 +28,7 @@ type UncheckedKind byte
 
 const (
 	UncheckedKindPrevious UncheckedKind = iota
-	UncheckedKindSource
+	UncheckedKindLink
 )
 
 type UncheckedBlockWalkFunc func(block Block, kind UncheckedKind) error

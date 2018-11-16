@@ -1,9 +1,21 @@
 package db
 
 import (
+	"errors"
 	"io"
 
 	"github.com/qlcchain/go-qlc/common/types"
+)
+
+var (
+	ErrStoreEmpty     = errors.New("the store is empty")
+	ErrBlockExists    = errors.New("block already exists")
+	ErrBlockNotFound  = errors.New("block not found")
+	ErrAccountExists  = errors.New("account already exists")
+	ErrTokenExists    = errors.New("token already exists")
+	ErrTokenNotFound  = errors.New("token not found")
+	ErrPendingExists  = errors.New("pending transaction already exists")
+	ErrFrontierExists = errors.New("frontier already exists")
 )
 
 // Store is an interface that all stores need to implement.
@@ -19,27 +31,28 @@ type StoreTxn interface {
 	Flush() error
 
 	// account meta CURD
-	AddAccountMeta(account types.Address, meta *types.AccountMeta) error
+	AddAccountMeta(meta *types.AccountMeta) error
 	GetAccountMeta(address types.Address) (*types.AccountMeta, error)
-	UpdateAccountMeta(address types.Address, meta *types.AccountMeta) error
+	UpdateAccountMeta(meta *types.AccountMeta) error
 	DeleteAccountMeta(address types.Address) error
 	HasAccountMeta(address types.Address) (bool, error)
 	// token meta CURD
-	AddTokenMeta(account types.Address, meta *types.TokenMeta) error
-	GetTokenMeta(account types.Address, meta *types.TokenMeta) error
-	DelTokenMeta(account types.Address, meta *types.TokenMeta) error
+	AddTokenMeta(address types.Address, meta *types.TokenMeta) error
+	GetTokenMeta(address types.Address, tokenType types.Hash) (*types.TokenMeta, error)
+	UpdateTokenMeta(address types.Address, meta *types.TokenMeta) error
+	DelTokenMeta(address types.Address, meta *types.TokenMeta) error
 	// blocks CURD
 	AddBlock(blk types.Block) error
 	GetBlock(hash types.Hash) (types.Block, error)
+	GetBlocks() ([]*types.Block, error)
 	DeleteBlock(hash types.Hash) error
 	HasBlock(hash types.Hash) (bool, error)
 	CountBlocks() (uint64, error)
-	GetRandomBlock() (*types.Block, error)
-
+	GetRandomBlock() (types.Block, error)
+	// representation CURD
 	AddRepresentation(address types.Address, amount types.Balance) error
 	SubRepresentation(address types.Address, amount types.Balance) error
 	GetRepresentation(address types.Address) (types.Balance, error)
-
 	// unchecked CURD
 	AddUncheckedBlock(parentHash types.Hash, blk types.Block, kind types.UncheckedKind) error
 	GetUncheckedBlock(parentHash types.Hash, kind types.UncheckedKind) (types.Block, error)
@@ -47,9 +60,14 @@ type StoreTxn interface {
 	HasUncheckedBlock(hash types.Hash, kind types.UncheckedKind) (bool, error)
 	WalkUncheckedBlocks(visit types.UncheckedBlockWalkFunc) error
 	CountUncheckedBlocks() (uint64, error)
-	//
-	//
+	// pending CURD
 	AddPending(destination types.Address, hash types.Hash, pending *types.PendingInfo) error
 	GetPending(destination types.Address, hash types.Hash) (*types.PendingInfo, error)
 	DeletePending(destination types.Address, hash types.Hash) error
+	// frontier CURD
+	AddFrontier(frontier *types.Frontier) error
+	GetFrontier(hash types.Hash) (*types.Frontier, error)
+	GetFrontiers() ([]*types.Frontier, error)
+	DeleteFrontier(hash types.Hash) error
+	CountFrontiers() (uint64, error)
 }
