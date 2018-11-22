@@ -49,6 +49,7 @@ var (
 )
 
 //Address of account
+//go:generate ffjson address.go
 type Address [AddressSize]byte
 
 //BytesToAddress convert byte array to Address
@@ -60,15 +61,16 @@ func BytesToAddress(b []byte) (Address, error) {
 
 // HexToAddress convert hex address string to Address
 func HexToAddress(hexStr string) (Address, error) {
-	if len(hexStr) != hexAddressLength {
+	s := util.TrimQuotes(hexStr)
+	if len(s) != hexAddressLength {
 		return Address{}, errAddressLen
 	}
 
-	if !strings.HasPrefix(hexStr, AddressPrefix) {
+	if !strings.HasPrefix(s, AddressPrefix) {
 		return Address{}, errAddressPrefix
 	}
 
-	addr := hexStr[addressPrefixLen:]
+	addr := s[addressPrefixLen:]
 
 	key, err := AddressEncoding.DecodeString("1111" + addr[0:52])
 	if err != nil {
@@ -216,7 +218,17 @@ func (addr *Address) UnmarshalBinary(text []byte) error {
 	return nil
 }
 
-//MarshalJSON implements json.Marshaler interface
-func (addr *Address) MarshalJSON() ([]byte, error) {
+//UnmarshalText implements encoding.TextUnmarshaler
+func (addr *Address) UnmarshalText(text []byte) error {
+	tmp, err := HexToAddress(string(text))
+	if err != nil {
+		return err
+	}
+	copy((*addr)[:], tmp[:])
+	return nil
+}
+
+//MarshalText implements encoding.Textmarshaler
+func (addr *Address) MarshalText() (text []byte, err error) {
 	return []byte(addr.String()), nil
 }

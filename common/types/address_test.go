@@ -2,7 +2,10 @@ package types
 
 import (
 	"encoding/hex"
+	"fmt"
 	"testing"
+
+	"github.com/json-iterator/go"
 )
 
 var validAddresses = []string{
@@ -70,4 +73,20 @@ func BenchmarkGenerateAddress(b *testing.B) {
 		pub, _, _ := GenerateAddress()
 		PubToAddress(pub.Bytes())
 	}
+}
+
+func TestAddressMarshalJSON(t *testing.T) {
+	addr, _ := HexToAddress("qlc_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3")
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	bytes, err := json.Marshal(&addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(string(bytes))
+	addr2 := Address{}
+	err = json.Unmarshal(bytes, &addr2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(addr2)
 }
